@@ -42,7 +42,7 @@ def random_image():
     URL = HOST + "/images/" + str(random.randint(1, 10))
 
     response = requests.get(URL)
-    body = BeautifulSoup(response.text, "lxml")
+    body = BeautifulSoup(response.text, "html.parser")
 
     ul = body.find("ul", {'class': 'mod'})
 

@@ -13,27 +13,39 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 
 def dominant_color(file_url):
     im = Image.open(file_url)
-    im = im.resize((1, 1))
-    ar = im.getcolors()[0][1]
-    color = '#%02x%02x%02x' % ar
-    return color
+    width, height = im.size
+    print(width, height)
+    colors = im.getcolors(width*height)
+    max_occurence, most_present = 0, 0
+    try:
+        for c in colors:
+            if c[0] > max_occurence:
+                (max_occurence, most_present) = c
+        print(most_present)
+        return '#%02x%02x%02x' % most_present
+    except TypeError:
+        raise Exception("Too many colors in the image")
+    # im = im.resize((1, 1))
+    # ar = im.getcolors()[0][1]
+    # color = '#%02x%02x%02x' % ar
+    # return color
 
 def set_image(file_url):
     cmd = [
-        'gsettings', 
-		'set', 
-		'org.gnome.desktop.background', 
-		'picture-uri', 
+        'gsettings',
+		'set',
+		'org.gnome.desktop.background',
+		'picture-uri',
         'file://{0}'.format(file_url)
     ]
     subprocess.call(cmd)
     d_color = dominant_color(file_url)
 
     cmd = [
-        'gsettings', 
-		'set', 
-		'org.gnome.desktop.background', 
-		'primary-color', 
+        'gsettings',
+		'set',
+		'org.gnome.desktop.background',
+		'primary-color',
         d_color
     ]
     subprocess.call(cmd)
@@ -81,7 +93,7 @@ def random_image():
                         body text,
                         link text
                     )''')
-        c.execute('''INSERT INTO images(date, header, body, link) 
+        c.execute('''INSERT INTO images(date, header, body, link)
                         VALUES(?,?,?,?)''', (date_posted, header, text, link))
         conn.commit()
 

@@ -10,6 +10,8 @@ import random
 HOST = "https://www.space.com"
 PATH = os.path.dirname(os.path.realpath(__file__))
 
+IMAGE_OF_DAY = True
+TOTAL_PAGES = 75
 
 def dominant_color(file_url):
     im = Image.open(file_url)
@@ -51,7 +53,10 @@ def set_image(file_url):
     subprocess.call(cmd)
 
 def random_image():
-    URL = HOST + "/images/" + str(random.randint(1, 10))
+    RAND_LIMIT = TOTAL_PAGES
+    if IMAGE_OF_DAY:
+        RAND_LIMIT = 1
+    URL = HOST + "/images/" + str(random.randint(1, RAND_LIMIT)) + "?type=wallpaper"
 
     response = requests.get(URL)
     body = BeautifulSoup(response.text, "html.parser")
@@ -59,6 +64,9 @@ def random_image():
     ul = body.find("ul", {'class': 'mod'})
 
     list_items = ul.find_all("li", {'class': 'search-item'})
+
+    if IMAGE_OF_DAY:
+        list_items = list_items[0:1]
 
     item = list_items[random.randint(0, len(list_items) - 1)]
     link = item.find("a")
@@ -79,7 +87,7 @@ def random_image():
     new_url = "/".join(split_image_url)
 
     image_response = requests.get(new_url)
-    dest_url = '{0}/{1}.jpg'.format(PATH, header)
+    dest_url = '{0}/{1} | {2}.jpg'.format(PATH, header, date_posted)
     output = open(dest_url, 'wb')
     output.write(image_response.content)
     output.close()

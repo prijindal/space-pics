@@ -1,11 +1,12 @@
 #!/usr/bin/python
-import requests
-from bs4 import BeautifulSoup
-from PIL import Image
 import sqlite3
 import subprocess
 import os
 import random
+
+import requests
+from bs4 import BeautifulSoup
+from PIL import Image
 
 HOST = "https://www.space.com"
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -14,15 +15,15 @@ IMAGE_OF_DAY = True
 TOTAL_PAGES = 75
 
 def dominant_color(file_url):
-    im = Image.open(file_url)
-    width, height = im.size
+    img = Image.open(file_url)
+    width, height = img.size
     print(width, height)
-    colors = im.getcolors(width*height)
+    colors = img.getcolors(width*height)
     max_occurence, most_present = 0, 0
     try:
-        for c in colors:
-            if c[0] > max_occurence:
-                (max_occurence, most_present) = c
+        for i in colors:
+            if i[0] > max_occurence:
+                (max_occurence, most_present) = i
         print(most_present)
         return '#%02x%02x%02x' % most_present
     except TypeError:
@@ -35,9 +36,9 @@ def dominant_color(file_url):
 def set_image(file_url):
     cmd = [
         'gsettings',
-		'set',
-		'org.gnome.desktop.background',
-		'picture-uri',
+        'set',
+        'org.gnome.desktop.background',
+        'picture-uri',
         'file://{0}'.format(file_url)
     ]
     subprocess.call(cmd)
@@ -45,25 +46,25 @@ def set_image(file_url):
 
     cmd = [
         'gsettings',
-		'set',
-		'org.gnome.desktop.background',
-		'primary-color',
+        'set',
+        'org.gnome.desktop.background',
+        'primary-color',
         d_color
     ]
     subprocess.call(cmd)
 
 def random_image():
-    RAND_LIMIT = TOTAL_PAGES
+    randlimit = TOTAL_PAGES
     if IMAGE_OF_DAY:
-        RAND_LIMIT = 1
-    URL = HOST + "/images/" + str(random.randint(1, RAND_LIMIT)) + "?type=wallpaper"
+        randlimit = 1
+    url = HOST + "/images/" + str(random.randint(1, randlimit)) + "?type=wallpaper"
 
-    response = requests.get(URL)
+    response = requests.get(url)
     body = BeautifulSoup(response.text, "html.parser")
 
-    ul = body.find("ul", {'class': 'mod'})
+    ulbody = body.find("ul", {'class': 'mod'})
 
-    list_items = ul.find_all("li", {'class': 'search-item'})
+    list_items = ulbody.find_all("li", {'class': 'search-item'})
 
     if IMAGE_OF_DAY:
         list_items = list_items[0:1]
@@ -93,15 +94,15 @@ def random_image():
     output.close()
     set_image(dest_url)
     with sqlite3.connect('{0}/images.db'.format(PATH)) as conn:
-        c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS images
+        cur = conn.cursor()
+        cur.execute('''CREATE TABLE IF NOT EXISTS images
                     (
                         date text,
                         header text,
                         body text,
                         link text
                     )''')
-        c.execute('''INSERT INTO images(date, header, body, link)
+        cur.execute('''INSERT INTO images(date, header, body, link)
                         VALUES(?,?,?,?)''', (date_posted, header, text, link))
         conn.commit()
 
